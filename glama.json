@@ -1,4 +1,8 @@
 {
   "$schema": "https://glama.ai/mcp/schemas/server.json",
-  "maintainers": ["atomnos"]
+  "maintainers": [
+    "atomnos"
+  ],
+  "name": "mcp-trademarks",
+  "description": "Russian trademark clearance: Rospatent search, similarity, status, TMview, Nice classes."
 }
