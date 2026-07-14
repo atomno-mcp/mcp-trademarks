@@ -1,9 +1,9 @@
 """FastMCP entrypoint для atomno-mcp-trademarks (тонкий клиент).
 
-Все тулы проксируют к hosted-бэкенду Atomno Labs (тариф Pro, ключ
+Все тулы проксируют к hosted-бэкенду Atomno MCP (тариф Pro, ключ
 MCP_TRADEMARKS_API_KEY): search_trademark, assess_similarity,
 get_trademark_status, search_tmview. Каждый ответ несёт disclaimer/source.
-Оценка сходства — СПРАВОЧНАЯ, не гарантия регистрации/отказа (см. spec, раздел 8).
+Оценка сходства — СПРАВОЧНАЯ, не гарантия регистрации/отказа.
 """
 
 from __future__ import annotations
@@ -46,7 +46,7 @@ mcp: FastMCP = FastMCP(
         "(phonetic / graphic / semantic, advisory risk low/med/high), check the "
         "status of an application or certificate by number, and extend the check "
         "internationally via TMview. Filter by Nice (МКТУ) classes. All tools go "
-        "through the Atomno Labs hosted API and need a Pro key "
+        "through the Atomno MCP hosted API and need a Pro key "
         "(MCP_TRADEMARKS_API_KEY). Every answer carries a disclaimer and a source. "
         "Similarity assessment is advisory, not a guarantee of registration; it does "
         "not replace a patent attorney. Get a key at "

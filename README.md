@@ -50,6 +50,7 @@ Cursor / Claude Desktop (`mcp.json` / `claude_desktop_config.json`):
 | `MCP_TRADEMARKS_API_KEY` | Ключ Pro (заголовок X-API-Key). [Получить](https://atomno-mcp.ru/pricing#trademarks-pro) | да |
 | `MCP_TRADEMARKS_API_BASE` | URL hosted-бэкенда (по умолчанию — прод) | нет |
 | `MCP_TRADEMARKS_TIMEOUT` | Таймаут HTTP, сек (default 30) | нет |
+| `MCP_TRADEMARKS_LOG_LEVEL` | Уровень логирования (DEBUG/INFO/WARNING/ERROR, default WARNING) | нет |
 
 ## Тулы
 

@@ -7,7 +7,7 @@
 
 ### Added
 
-- Тонкий MCP-клиент `atomno-mcp-trademarks` (open-core: публичный клиент + приватный hosted-сервер).
+- Тонкий MCP-клиент `atomno-mcp-trademarks` (публичный клиент + hosted corporate API, тариф Pro).
 - 4 тула через hosted API (тариф Pro): `search_trademark`, `assess_similarity`,
   `get_trademark_status`, `search_tmview`.
 - Фильтр по классам МКТУ во всех поисковых тулах.
