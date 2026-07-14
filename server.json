@@ -1,18 +1,19 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "mcp-trademarks",
+  "name": "io.github.atomno-mcp/mcp-trademarks",
+  "title": "mcp-trademarks",
   "description": "Russian trademark clearance: Rospatent search, similarity, status, TMview, Nice classes.",
   "repository": {
     "url": "https://github.com/atomno-mcp/mcp-trademarks",
     "source": "github"
   },
-  "version": "0.1.2",
+  "version": "0.1.4",
   "packages": [
     {
       "registryType": "pypi",
       "registryBaseUrl": "https://pypi.org",
       "identifier": "atomno-mcp-trademarks",
-      "version": "0.1.2",
+      "version": "0.1.4",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
