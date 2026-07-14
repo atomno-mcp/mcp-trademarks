@@ -1,0 +1,28 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.atomno-mcp/mcp-trademarks",
+  "description": "Russian trademark clearance — search the Rospatent/FIPS registries by wordmark, assess similarity (advisory), check application/certificate status, and extend internationally via TMview, filtered by Nice (МКТУ) classes.",
+  "repository": {
+    "url": "https://github.com/atomno-mcp/mcp-trademarks",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "atomno-mcp-trademarks",
+      "version": "0.1.0",
+      "runtimeHint": "uvx",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "MCP_TRADEMARKS_API_KEY",
+          "description": "API key (Pro tier) for trademark search, similarity assessment, status and TMview lookups.",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
