@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.atomno-mcp/mcp-trademarks",
-  "description": "Russian trademark clearance — search the Rospatent/FIPS registries by wordmark, assess similarity (advisory), check application/certificate status, and extend internationally via TMview, filtered by Nice (МКТУ) classes.",
+  "description": "Russian trademark clearance: Rospatent search, similarity, status, TMview, Nice classes.",
   "repository": {
     "url": "https://github.com/atomno-mcp/mcp-trademarks",
     "source": "github"
