@@ -1,6 +1,13 @@
 <!-- mcp-name: io.github.atomno-mcp/mcp-trademarks -->
 # atomno-mcp-trademarks
 
+[![Glama](https://img.shields.io/badge/Glama-listed-7c3aed.svg)](https://glama.ai/mcp/servers/atomno-mcp/mcp-trademarks)
+
+<a href="https://glama.ai/mcp/servers/atomno-mcp/mcp-trademarks">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/atomno-mcp/mcp-trademarks/badge" alt="mcp-trademarks MCP server" />
+</a>
+
+
 **Проверка товарного знака прямо в AI-ассистенте** — Russian trademark clearance
 for AI agents: search Rospatent/FIPS by wordmark, assess similarity, check
 application status, go international via TMview. Works in Cursor, Claude Desktop,
