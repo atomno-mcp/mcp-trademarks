@@ -1,22 +1,16 @@
 <!-- mcp-name: io.github.atomno-mcp/mcp-trademarks -->
+
 # atomno-mcp-trademarks
+
+Проверка товарного знака прямо в ассистенте: поиск в Роспатенте, оценка сходства, статус заявки и международный поиск через TMview. Прежде чем вложиться в название — узнайте, свободно ли оно, без ручного перебора форм ФИПС.
+
+Russian trademark clearance for AI agents.
 
 [![Glama](https://img.shields.io/badge/Glama-listed-7c3aed.svg)](https://glama.ai/mcp/servers/atomno-mcp/mcp-trademarks)
 
 <a href="https://glama.ai/mcp/servers/atomno-mcp/mcp-trademarks">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/atomno-mcp/mcp-trademarks/badge" alt="mcp-trademarks MCP server" />
 </a>
-
-
-**Проверка товарного знака прямо в AI-ассистенте** — Russian trademark clearance
-for AI agents: search Rospatent/FIPS by wordmark, assess similarity, check
-application status, go international via TMview. Works in Cursor, Claude Desktop,
-Cline, and any MCP client.
-
-Прежде чем вложиться в нейминг и айдентику — за секунды узнайте, свободно ли
-название. Спросите ассистента «есть ли похожие знаки на „Ромашка“ в классе
-кофеен?» — и получите структурированный ответ по официальным реестрам с
-**справочной** оценкой риска столкновения, а не ручной перебор форм ФИПС.
 
 > Оценка сходства носит **справочный** характер и **не является гарантией**
 > регистрации или отказа. Инструмент не заменяет патентного поверенного.
