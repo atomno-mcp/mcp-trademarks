@@ -37,3 +37,7 @@ def invalid_credentials(*, message_ru: str, source: str, **extra: Any) -> dict[s
 
 def source_unavailable(*, message_ru: str, source: str, **extra: Any) -> dict[str, Any]:
     return _base(error="source_unavailable", message_ru=message_ru, source=source, **extra)
+
+
+def parse_failed(*, message_ru: str, source: str, **extra: Any) -> dict[str, Any]:
+    return _base(error="parse_failed", message_ru=message_ru, source=source, **extra)

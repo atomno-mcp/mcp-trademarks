@@ -22,17 +22,22 @@ OPEN_DB = "RUTM"
 SOURCE = "ФИПС, открытые реестры (RUTM), карточка по номеру свидетельства"
 
 # Коды INID для знаков — стандарт ВОИС ST.60, ими размечены карточки открытого реестра.
-_INID_FIELDS = {
+# 181/186 — срок действия и продление (на живых карточках ФИПС часто вместо 180).
+_INID_FIRST = {
     "111": "registration_number",
-    "141": "termination_date",
     "151": "registration_date",
-    "180": "expiry_date",
     "210": "application_number",
     "220": "application_date",
     "511": "nice_classes_raw",
     "540": "mark_text",
     "731": "holder",
     "732": "holder",
+}
+_INID_LAST = {
+    "141": "termination_date",
+    "180": "expiry_date",
+    "181": "expiry_date",
+    "186": "expiry_date",
 }
 
 _NOT_FOUND_MARKERS = (
@@ -44,6 +49,7 @@ _REJECTED_MARKERS = (
     "запрос данного документа отклонён",
 )
 _TAG_RE = re.compile(r"<[^>]+>", re.I)
+_BIB_P_RE = re.compile(r'<p[^>]*class="[^"]*\bbib\b[^"]*"[^>]*>(.*?)</p>', re.I | re.S)
 _INID_CELL_RE = re.compile(
     r"\((\d{3})\)[^<]{0,200}?</td>\s*<td[^>]*>(.*?)</td>",
     re.I | re.S,
@@ -52,7 +58,19 @@ _INID_LINE_RE = re.compile(
     r"\((\d{3})\)[^\n\t]{0,80}[\t:]\s*([^\n<(]{1,400})",
     re.I,
 )
+_INID_CODE_RE = re.compile(r"\((\d{3})\)")
+_IMG_SRC_RE = re.compile(r'<img[^>]+src="([^"]+)"', re.I)
+_STATUS_RE = re.compile(
+    r'class="Status"[^>]*>.*?Статус:\s*([^<(]+)',
+    re.I | re.S,
+)
+_CLASS_LINE_RE = re.compile(r"(?:^|[\s>])(0?[1-9]|[1-3][0-9]|4[0-5])\s*[-–—]")
 _NUMBER_RE = re.compile(r"^\d{1,12}$")
+_PARSE_FAILED_RU = (
+    "Документ с этим номером в открытом реестре ФИПС есть, но поля карточки "
+    "разобрать не удалось. Откройте первоисточник и посмотрите глазами. "
+    "Это не ответ «знака нет»."
+)
 
 
 class FipsOpenError(TrademarksError):
@@ -97,6 +115,112 @@ def _plain_text(html: str) -> str:
     return cleaned
 
 
+def _plain_fragment(html: str) -> str:
+    cleaned = re.sub(r"(?i)<br\s*/?>", "\n", html)
+    cleaned = _TAG_RE.sub(" ", cleaned)
+    cleaned = unescape(cleaned)
+    cleaned = re.sub(r"[ \t]+", " ", cleaned)
+    return re.sub(r"\n{2,}", "\n", cleaned).strip()
+
+
+def _clean_value(raw: str) -> str:
+    value = unescape(_TAG_RE.sub(" ", raw))
+    value = re.sub(r"\s+", " ", value).strip(" \t.;\n")
+    return value
+
+
+def _value_after_code(plain: str) -> str:
+    rest = _INID_CODE_RE.sub("", plain, count=1).strip()
+    rest = re.sub(r"^[^:\n]{1,80}:\s*", "", rest, count=1).strip()
+    return re.sub(r"\s+", " ", rest).strip(" \t.;")
+
+
+def _collect_inid(html: str, text: str) -> tuple[dict[str, list[str]], list[str]]:
+    values: dict[str, list[str]] = {}
+    images: list[str] = []
+
+    def add(code: str, value: str) -> None:
+        if code and value:
+            values.setdefault(code, []).append(value)
+
+    for block in _BIB_P_RE.findall(html):
+        code_m = _INID_CODE_RE.search(block)
+        if not code_m:
+            continue
+        code = code_m.group(1)
+        for img in _IMG_SRC_RE.findall(block):
+            src = unescape(img.strip())
+            if src:
+                images.append(src)
+        add(code, _value_after_code(_plain_fragment(block)))
+
+    for match in _INID_CELL_RE.finditer(html):
+        add(match.group(1), _clean_value(match.group(2)))
+
+    if not values:
+        for match in _INID_LINE_RE.finditer(text):
+            add(match.group(1), match.group(2).strip(" \t.;"))
+
+    if not images:
+        images = [unescape(src) for src in _IMG_SRC_RE.findall(html) if src.strip()]
+    return values, images
+
+
+def _pick(values: dict[str, list[str]], code: str, *, last: bool = False) -> str | None:
+    items = values.get(code) or []
+    if not items:
+        return None
+    return items[-1] if last else items[0]
+
+
+def _nice_classes(raw: str | None) -> list[int]:
+    if not raw:
+        return []
+    seen: list[int] = []
+    for match in _CLASS_LINE_RE.finditer(raw):
+        num = int(match.group(1))
+        if num not in seen:
+            seen.append(num)
+    if seen:
+        return seen
+    for match in re.finditer(r"\b([1-9]|[1-3][0-9]|4[0-5])\b", raw):
+        num = int(match.group(1))
+        if num not in seen:
+            seen.append(num)
+    return seen
+
+
+def _normalize_mark_text(value: str | None) -> str | None:
+    if not value:
+        return None
+    folded = value.casefold()
+    if folded.startswith("изображение") and len(value) < 90:
+        return None
+    return value
+
+
+def _legal_status(html: str, folded: str) -> str | None:
+    status_m = _STATUS_RE.search(html)
+    if status_m:
+        status = re.sub(r"\s+", " ", status_m.group(1)).strip()
+        if status:
+            return status
+    guess = re.search(r"(действует|прекратил(?:а)? действие|аннулирован)", folded)
+    return guess.group(1) if guess else None
+
+
+def _parse_failed(number: str) -> dict[str, Any]:
+    return {
+        "ready": True,
+        "found": None,
+        "error": "parse_failed",
+        "number": number,
+        "source": SOURCE,
+        "source_url": None,
+        "message_ru": _PARSE_FAILED_RU,
+    }
+
+
 def parse_open_card(html: str, *, number: str) -> dict[str, Any]:
     """Разобрать HTML карточки открытого реестра. Только поля с кодом INID."""
     text = _plain_text(html)
@@ -115,35 +239,31 @@ def parse_open_card(html: str, *, number: str) -> dict[str, Any]:
             "Это не ответ «знака нет»."
         )
 
+    collected, images = _collect_inid(html, text)
     fields: dict[str, str] = {}
-    for match in _INID_CELL_RE.finditer(html):
-        key = _INID_FIELDS.get(match.group(1))
-        value = unescape(_TAG_RE.sub(" ", match.group(2))).strip(" \t.;\n")
-        value = re.sub(r"\s+", " ", value)
-        if key and value:
+    for code, key in _INID_FIRST.items():
+        value = _pick(collected, code)
+        if value and key not in fields:
             fields[key] = value
-    if not fields:
-        for match in _INID_LINE_RE.finditer(text):
-            key = _INID_FIELDS.get(match.group(1))
-            value = match.group(2).strip(" \t.;")
-            if key and value:
-                fields[key] = value
+    for code, key in _INID_LAST.items():
+        value = _pick(collected, code, last=True)
+        if value:
+            fields[key] = value
 
-    if not fields:
+    nice_raw = fields.get("nice_classes_raw")
+    nice_classes = _nice_classes(nice_raw)
+    mark_text = _normalize_mark_text(fields.get("mark_text"))
+    mark_image = images[0] if images else None
+    holder = fields.get("holder")
+    has_document = bool(collected) or bool(_INID_CODE_RE.search(html))
+    substantive = bool(holder) and (bool(nice_classes) or bool(mark_text) or bool(mark_image))
+    if not substantive:
+        if has_document:
+            return _parse_failed(number)
         raise SourceUnavailable(
             "Страница открытого реестра ФИПС пришла, но карточки с кодами INID на ней нет. "
             "Не считаем это «знак не найден»."
         )
-
-    nice_raw = fields.get("nice_classes_raw")
-    nice_classes: list[int] = []
-    if nice_raw:
-        nice_classes = [int(x) for x in re.findall(r"\b([1-9]|[1-3][0-9]|4[0-5])\b", nice_raw)]
-
-    status_guess = None
-    status_match = re.search(r"(действует|прекратил(?:а)? действие|аннулирован)", folded)
-    if status_match:
-        status_guess = status_match.group(1)
 
     return {
         "ready": True,
@@ -155,11 +275,12 @@ def parse_open_card(html: str, *, number: str) -> dict[str, Any]:
         "registration_date": fields.get("registration_date"),
         "expiry_date": fields.get("expiry_date"),
         "termination_date": fields.get("termination_date"),
-        "holder": fields.get("holder"),
-        "mark_text": fields.get("mark_text"),
+        "holder": holder,
+        "mark_text": mark_text,
+        "mark_image_url": mark_image,
         "nice_classes": nice_classes or None,
         "nice_classes_raw": nice_raw,
-        "legal_status_raw": status_guess,
+        "legal_status_raw": _legal_status(html, folded),
         "source": SOURCE,
         "source_url": None,
         "message_ru": "Карточка из открытого реестра ФИПС по номеру свидетельства.",

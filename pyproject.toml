@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "atomno-mcp-trademarks"
-version = "0.1.5"
+version = "0.1.6"
 description = "MCP for Russian trademarks: FIPS open-register card by number; paid name search needs a client FIPS contract. Advisory only."
 readme = "README.md"
 requires-python = ">=3.11"
