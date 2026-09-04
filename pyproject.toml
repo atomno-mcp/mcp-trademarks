@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "atomno-mcp-trademarks"
 version = "0.1.4"
-description = "MCP server: Russian trademark clearance — search the Rospatent/FIPS registries by wordmark, assess similarity (advisory), check application/certificate status, and extend internationally via TMview, filtered by Nice (МКТУ) classes."
+description = "MCP client for Russian trademarks. FIPS and TMview are not connected yet; requests return an honest not-ready reply, not an empty hit list."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }

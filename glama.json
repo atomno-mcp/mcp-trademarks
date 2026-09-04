@@ -4,5 +4,5 @@
     "atomnos"
   ],
   "name": "mcp-trademarks",
-  "description": "Russian trademark clearance: Rospatent search, similarity, status, TMview, Nice classes."
+  "description": "Trademark MCP. FIPS and TMview are not connected yet."
 }

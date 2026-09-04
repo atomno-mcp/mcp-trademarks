@@ -1,9 +1,8 @@
 """FastMCP entrypoint для atomno-mcp-trademarks (тонкий клиент).
 
-Все тулы проксируют к hosted-бэкенду Atomno MCP (тариф Pro, ключ
-MCP_TRADEMARKS_API_KEY): search_trademark, assess_similarity,
-get_trademark_status, search_tmview. Каждый ответ несёт disclaimer/source.
-Оценка сходства — СПРАВОЧНАЯ, не гарантия регистрации/отказа.
+Тулы проксируют к hosted-бэкенду. Реестры ФИПС и TMview ещё не подключены:
+ответ — ready=false, не пустой список знаков. Оценка сходства справочная,
+не гарантия регистрации/отказа.
 """
 
 from __future__ import annotations
@@ -41,16 +40,13 @@ DISCLAIMER = (
 mcp: FastMCP = FastMCP(
     name="atomno-mcp-trademarks",
     instructions=(
-        "Russian trademark clearance for AI agents: search the official Rospatent / "
-        "FIPS registries by wordmark, assess similarity of a candidate designation "
-        "(phonetic / graphic / semantic, advisory risk low/med/high), check the "
-        "status of an application or certificate by number, and extend the check "
-        "internationally via TMview. Filter by Nice (МКТУ) classes. All tools go "
-        "through the Atomno MCP hosted API and need a Pro key "
-        "(MCP_TRADEMARKS_API_KEY). Every answer carries a disclaimer and a source. "
-        "Similarity assessment is advisory, not a guarantee of registration; it does "
-        "not replace a patent attorney. Get a key at "
-        "https://atomno-mcp.ru/pricing#trademarks-pro."
+        "Russian trademark MCP client. FIPS / Rospatent and TMview are not "
+        "connected yet: every lookup returns ready=false with the source name, "
+        "not an empty hit list. Do not treat that as «no trademarks found». "
+        "Tools: search_trademark, assess_similarity, get_trademark_status, "
+        "search_tmview. All go through the hosted API and need MCP_TRADEMARKS_API_KEY. "
+        "Similarity assessment is advisory only. "
+        "Key: https://atomno-mcp.ru/pricing#trademarks-pro."
     ),
 )
 
@@ -120,7 +116,7 @@ async def search_trademark(
     status_filter: Annotated[str, Field(default="all", description="registered — только зарегистрированные; pending — заявки; all — всё.", pattern="^(registered|pending|all)$")] = "all",
     limit: Annotated[int, Field(default=20, ge=1, le=100, description="Максимум результатов.")] = 20,
 ) -> dict[str, Any]:
-    """Поиск тождественных и сходных товарных знаков/заявок по словесному обозначению (реестр ФИПС/Роспатента). Тариф Pro."""
+    """Поиск по реестру ФИПС ещё не подключён. Ответ: ready=false, источник подключается. Не путать с «знаков не найдено». Тариф Pro."""
     return await _hosted_call(
         "search_trademark",
         lambda: _call(lambda c: c.search(query, classes, status_filter, limit)),
@@ -133,7 +129,7 @@ async def assess_similarity(
     against: Annotated[list[str] | None, Field(default=None, description="Конкретные обозначения/номера для сравнения (иначе — по реестру).")] = None,
     classes: Annotated[list[int] | None, Field(default=None, description="Классы МКТУ 1–45.")] = None,
 ) -> dict[str, Any]:
-    """Справочная оценка сходства до степени смешения (фонетика/графика/семантика, риск low/med/high). НЕ гарантия. Тариф Pro."""
+    """Оценка сходства без реестра недоступна. Ответ: ready=false, источник подключается. Тариф Pro."""
     return await _hosted_call(
         "assess_similarity",
         lambda: _call(lambda c: c.assess(candidate, against, classes)),
@@ -144,7 +140,7 @@ async def assess_similarity(
 async def get_trademark_status(
     number: Annotated[str, Field(min_length=1, description="Номер заявки или свидетельства (напр. «2024712345»).")],
 ) -> dict[str, Any]:
-    """Статус по номеру заявки/свидетельства: приоритет, регистрация, классы МКТУ, правообладатель, срок. Тариф Pro."""
+    """Статус по номеру заявки ещё не подключён (ФИПС). Ответ: ready=false, источник подключается. Тариф Pro."""
     return await _hosted_call(
         "get_trademark_status",
         lambda: _call(lambda c: c.status(number)),
@@ -157,7 +153,7 @@ async def search_tmview(
     classes: Annotated[list[int] | None, Field(default=None, description="Классы МКТУ 1–45.")] = None,
     territories: Annotated[list[str] | None, Field(default=None, description="Коды территорий/ведомств (напр. EM — EUIPO).")] = None,
 ) -> dict[str, Any]:
-    """Международный поиск в открытой базе TMview (зарубежные реестры). Тариф Pro."""
+    """Поиск в TMview ещё не подключён. Ответ: ready=false, источник подключается. Тариф Pro."""
     return await _hosted_call(
         "search_tmview",
         lambda: _call(lambda c: c.tmview(query, classes, territories)),
@@ -168,8 +164,8 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="atomno-mcp-trademarks",
         description=(
-            "MCP server: Russian trademark clearance (Rospatent/FIPS search, "
-            "similarity assessment, status, TMview)."
+            "MCP server: Russian trademark client. FIPS and TMview are not "
+            "connected yet; replies are honest not-ready, not empty hit lists."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
