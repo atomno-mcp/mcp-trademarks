@@ -2,29 +2,25 @@
 
 # atomno-mcp-trademarks
 
-Клиент для запросов по товарным знакам. Реестры ФИПС и TMview ещё не подключены: ответ сообщает, что источник подключается, и не выдаёт пустой список как «знаков не найдено».
+Карточка товарного знака **по номеру свидетельства** из открытого реестра ФИПС — без ключа. Поиск **по названию** у ФИПС платный: нужен ваш договор. Своего доступа к платному поиску ФИПС у нас нет; на живой учётке клиента платный поиск не проверяли.
 
-Trademark MCP client. FIPS and TMview are not connected yet.
+Trademark MCP: free FIPS card by certificate number; paid name search uses the client's FIPS contract.
 
 [![Glama](https://img.shields.io/badge/Glama-listed-7c3aed.svg)](https://glama.ai/mcp/servers/atomno-mcp/mcp-trademarks)
 
-<a href="https://glama.ai/mcp/servers/atomno-mcp/mcp-trademarks">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/atomno-mcp/mcp-trademarks/badge" alt="mcp-trademarks MCP server" />
-</a>
-
 > Оценка сходства — **справочная** и **не замена** патентного поверенного.
-> Сейчас реестры не подключены.
 
 ## Что умеет сейчас
 
-- Принимает запрос на поиск, оценку сходства, статус заявки и TMview.
-- Отвечает честно: `ready: false` и причина — источник ещё не подключён.
-- Не подменяет отказ пустым списком знаков.
+- `get_trademark_status` — карточка по номеру свидетельства из открытого реестра ФИПС. Ключ не нужен. Нет документа — `found: false`. Сбой или лимит источника — отказ с причиной, не «знака нет».
+- Поиск по названию без учётки ФИПС — честный отказ: поиск платный у первоисточника.
+- Если задана учётка ФИПС — запрос в платный поиск **не отправляем**: машиночитаемого описания обмена в открытом доступе нет (ИПС — веб-форма). Когда описание появится, поиск включится.
 
 ## Что не подключено
 
-- Реестр товарных знаков ФИПС / Роспатент
+- Платный поиск ФИПС по названию (нет открытой спецификации обмена)
 - Международная база TMview
+- Оценка сходства без живого поиска по реестру
 
 ## Быстрый старт
 
@@ -33,7 +29,20 @@ pipx install atomno-mcp-trademarks
 # или: uvx atomno-mcp-trademarks
 ```
 
-Cursor / Claude Desktop (`mcp.json` / `claude_desktop_config.json`):
+Карточка по номеру — без переменных:
+
+```json
+{
+  "mcpServers": {
+    "trademarks": {
+      "command": "uvx",
+      "args": ["atomno-mcp-trademarks"]
+    }
+  }
+}
+```
+
+Платный поиск (когда появится описание обмена) — учётка из **вашего** договора с ФИПС:
 
 ```json
 {
@@ -41,36 +50,43 @@ Cursor / Claude Desktop (`mcp.json` / `claude_desktop_config.json`):
     "trademarks": {
       "command": "uvx",
       "args": ["atomno-mcp-trademarks"],
-      "env": { "MCP_TRADEMARKS_API_KEY": "<ваш-ключ-Pro>" }
+      "env": {
+        "MCP_TRADEMARKS_FIPS_LOGIN": "<логин договора ФИПС>",
+        "MCP_TRADEMARKS_FIPS_PASSWORD": "<пароль договора ФИПС>"
+      }
     }
   }
 }
 ```
 
+Доступ: регистрация и договор-оферта на сайте ФИПС (информационно-поисковая система). Своего договора у нас нет. Наше размещение — отдельная услуга (`MCP_TRADEMARKS_API_KEY`), не замена ключа ФИПС.
+
 ## Переменные окружения
 
 | Переменная | Описание | Обязательна |
 |---|---|---|
-| `MCP_TRADEMARKS_API_KEY` | Ключ Pro (заголовок X-API-Key). [Получить](https://atomno-mcp.ru/pricing#trademarks-pro) | да |
-| `MCP_TRADEMARKS_API_BASE` | URL hosted-бэкенда (по умолчанию — прод) | нет |
+| `MCP_TRADEMARKS_FIPS_LOGIN` | Логин договора с ФИПС (платный поиск) | нет |
+| `MCP_TRADEMARKS_FIPS_PASSWORD` | Пароль договора с ФИПС | нет (нужен вместе с логином) |
+| `MCP_TRADEMARKS_FIPS_OPEN_BASE` | Адрес сервлета открытых реестров | нет |
+| `MCP_TRADEMARKS_API_KEY` | Ключ нашего размещения | нет |
+| `MCP_TRADEMARKS_API_BASE` | URL нашего размещения | нет |
 | `MCP_TRADEMARKS_TIMEOUT` | Таймаут HTTP, сек (default 30) | нет |
-| `MCP_TRADEMARKS_LOG_LEVEL` | Уровень логирования (DEBUG/INFO/WARNING/ERROR, default WARNING) | нет |
+| `MCP_TRADEMARKS_LOG_LEVEL` | Уровень логирования | нет |
 
 ## Тулы
 
 | Тул | Вход | Что отвечает сейчас |
 |---|---|---|
-| `search_trademark` | query, classes?, status_filter?, limit? | `ready: false` — ФИПС не подключён |
-| `assess_similarity` | candidate, against?, classes? | `ready: false` — оценка без реестра недоступна |
-| `get_trademark_status` | number | `ready: false` — ФИПС не подключён |
-| `search_tmview` | query, classes?, territories? | `ready: false` — TMview не подключён |
+| `get_trademark_status` | number (номер свидетельства) | карточка открытого реестра ФИПС |
+| `search_trademark` | query, classes?, status_filter?, limit? | отказ: платный поиск / описание закрыто |
+| `assess_similarity` | candidate, against?, classes? | отказ: без живого поиска недоступна |
+| `search_tmview` | query, classes?, territories? | отказ: TMview не подключён |
 
-Каждый ответ содержит `source`, `checked_at` и `disclaimer`.
+Каждый ответ содержит `source` и `disclaimer`.
 
 ## Дисклеймер
 
-Реестры ФИПС и TMview ещё не подключены. Оценка сходства **не заменяет**
-патентного поверенного. Не аффилировано с Роспатентом, ФИПС и EUIPO/TMview.
+Оценка сходства **не заменяет** патентного поверенного. Не аффилировано с Роспатентом и ФИПС. Своего доступа к платному поиску ФИПС у нас нет; на живой учётке клиента этот поиск не проверяли.
 
 ## Лицензия
 

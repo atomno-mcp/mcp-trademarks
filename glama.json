@@ -4,5 +4,5 @@
     "atomnos"
   ],
   "name": "mcp-trademarks",
-  "description": "Trademark MCP. FIPS and TMview are not connected yet."
+  "description": "FIPS trademark card by number; paid name search uses the client contract."
 }

@@ -18,3 +18,11 @@ class BackendError(TrademarksError):
 
 class BackendUnavailable(TrademarksError):
     """Бэкенд недоступен (сеть / таймаут)."""
+
+
+class SourceUnavailable(TrademarksError):
+    """Официальный источник не ответил или отклонил запрос."""
+
+
+class AuthError(TrademarksError):
+    """Источник отклонил ключ или учётную запись."""
