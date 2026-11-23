@@ -3,6 +3,12 @@
 Все заметные изменения фиксируются здесь. Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [SemVer](https://semver.org/lang/ru/).
 
+## [0.1.7] — 2026-11-23
+
+### Fixed
+
+- Обновлён публичный адрес автора пакета.
+
 ## [0.1.6] — 2026-09-04
 
 ### Changed
@@ -33,3 +39,5 @@
 - Обязательный дисклеймер о справочном характере оценки сходства в каждом ответе.
 - CLI argparse (`--help/--version/--transport/--host/--port/--log-level`), env `MCP_TRADEMARKS_*`.
 - Метаданные для офиц. MCP Registry (`server.json` + workflow OIDC + маркер `mcp-name`), `glama.json`, `Dockerfile`.
+
+[0.1.7]: https://github.com/atomno-mcp/mcp-trademarks/releases/tag/v0.1.7
